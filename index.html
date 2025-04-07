@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLMap命令生成器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-terminal"></i> SQLMap命令生成器</h1>
+            <p>快速生成SQLMap命令，支持多种注入方式和高级选项</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="options-panel">
+                <div class="quick-actions">
+                    <button id="toggle-checkboxes" class="secondary-btn">
+                        <i class="fas fa-check-square"></i> 全选/取消全选
+                    </button>
+                    <button id="toggle-all" class="secondary-btn">
+                        <i class="fas fa-chevron-down"></i> 展开/折叠所有
+                    </button>
+                    <button id="load-template" class="secondary-btn">
+                        <i class="fas fa-file-import"></i> 加载模板
+                    </button>
+                    <button id="save-template" class="secondary-btn">
+                        <i class="fas fa-save"></i> 保存模板
+                    </button>
+                </div>
+                
+                <div class="accordion active">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-bullseye"></i> 目标选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label for="target-url">目标URL</label>
+                            <input type="text" id="target-url" placeholder="http://example.com/page.php?id=1">
+                        </div>
+                        <div class="form-group">
+                            <label for="target-file">目标文件</label>
+                            <input type="text" id="target-file" placeholder="包含多个URL的文件路径">
+                        </div>
+                        <div class="form-group">
+                            <label for="request-file">请求文件</label>
+                            <input type="text" id="request-file" placeholder="包含HTTP请求的文件路径">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-exchange-alt"></i> 请求选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label for="method">请求方法</label>
+                            <select id="method">
+                                <option value="">GET</option>
+                                <option value="--method=POST">POST</option>
+                                <option value="--method=PUT">PUT</option>
+                                <option value="--method=DELETE">DELETE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="data">POST数据</label>
+                            <input type="text" id="data" placeholder="id=1&user=admin">
+                        </div>
+                        <div class="form-group">
+                            <label for="cookie">Cookie值</label>
+                            <input type="text" id="cookie" placeholder="session=abc123">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-agent">User-Agent</label>
+                            <input type="text" id="user-agent" placeholder="Mozilla/5.0...">
+                        </div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="random-agent">
+                                <label for="random-agent">随机User-Agent</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-database"></i> 注入选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label for="param">测试参数</label>
+                            <input type="text" id="param" placeholder="id,user,pass">
+                        </div>
+                        <div class="form-group">
+                            <label for="dbms">数据库类型</label>
+                            <select id="dbms">
+                                <option value="">自动检测</option>
+                                <option value="--dbms=mysql">MySQL</option>
+                                <option value="--dbms=mssql">MSSQL</option>
+                                <option value="--dbms=oracle">Oracle</option>
+                                <option value="--dbms=postgresql">PostgreSQL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="technique">注入技术</label>
+                            <select id="technique">
+                                <option value="">全部</option>
+                                <option value="--technique=B">布尔盲注</option>
+                                <option value="--technique=E">错误盲注</option>
+                                <option value="--technique=U">联合查询注入</option>
+                                <option value="--technique=S">堆叠查询注入</option>
+                                <option value="--technique=T">时间盲注</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inline-query">SQL查询</label>
+                            <input type="text" id="inline-query" placeholder="SELECT version()">
+                        </div>
+                        <div class="form-group">
+                            <label for="prefix">前缀</label>
+                            <input type="text" id="prefix" placeholder="')">
+                        </div>
+                        <div class="form-group">
+                            <label for="suffix">后缀</label>
+                            <input type="text" id="suffix" placeholder="--">
+                        </div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="code">
+                                <label for="code">代码执行</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="os-shell">
+                                <label for="os-shell">获取Shell</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="os-pwn">
+                                <label for="os-pwn">获取权限</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-search"></i> 探测选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label>测试级别</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="level" id="level1" value="--level 1" checked>
+                                    <label for="level1">级别 1</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="level" id="level2" value="--level 2">
+                                    <label for="level2">级别 2</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="level" id="level3" value="--level 3">
+                                    <label for="level3">级别 3</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="level" id="level4" value="--level 4">
+                                    <label for="level4">级别 4</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="level" id="level5" value="--level 5">
+                                    <label for="level5">级别 5</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>风险级别</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="risk" id="risk1" value="--risk 1" checked>
+                                    <label for="risk1">级别 1</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="risk" id="risk2" value="--risk 2">
+                                    <label for="risk2">级别 2</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="risk" id="risk3" value="--risk 3">
+                                    <label for="risk3">级别 3</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-list"></i> 枚举选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="dbs">
+                                <label for="dbs">枚举数据库</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tables">
+                                <label for="tables">枚举表</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="columns">
+                                <label for="columns">枚举列</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="dump">
+                                <label for="dump">导出数据</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="dump-all">
+                                <label for="dump-all">导出所有数据</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="db-name">数据库名</label>
+                            <input type="text" id="db-name" placeholder="数据库名称">
+                        </div>
+                        <div class="form-group">
+                            <label for="table-name">表名</label>
+                            <input type="text" id="table-name" placeholder="表名称">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-cogs"></i> 高级选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label for="threads">线程数</label>
+                            <input type="number" id="threads" min="1" max="10" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>输出详细程度</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose0" value="--verbose 0" checked>
+                                    <label for="verbose0">0级</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose1" value="--verbose 1">
+                                    <label for="verbose1">1级</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose2" value="--verbose 2">
+                                    <label for="verbose2">2级</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose3" value="--verbose 3">
+                                    <label for="verbose3">3级</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose4" value="--verbose 4">
+                                    <label for="verbose4">4级</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose5" value="--verbose 5">
+                                    <label for="verbose5">5级</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="verbose" id="verbose6" value="--verbose 6">
+                                    <label for="verbose6">6级</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="batch">
+                                <label for="batch">批处理模式</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tor">
+                                <label for="tor">使用Tor代理</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="check-tor">
+                                <label for="check-tor">验证Tor连接</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="fingerprint">
+                                <label for="fingerprint">数据库指纹识别</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="proxy">代理地址</label>
+                            <input type="text" id="proxy" placeholder="http://127.0.0.1:8080">
+                        </div>
+                        <div class="form-group">
+                            <label for="delay">请求延迟</label>
+                            <input type="number" id="delay" min="0" step="0.1" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="timeout">请求超时</label>
+                            <input type="number" id="timeout" min="1" value="30">
+                        </div>
+                        <div class="form-group">
+                            <label for="retries">重试次数</label>
+                            <input type="number" id="retries" min="0" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="time-sec">时间盲注延迟</label>
+                            <input type="number" id="time-sec" min="1" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="union-cols">联合查询列数</label>
+                            <input type="text" id="union-cols" placeholder="8-12">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-shield-alt"></i> 绕过选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label for="tamper">Tamper脚本</label>
+                            <select id="tamper">
+                                <option value="">无</option>
+                                <option value="--tamper=space2comment">space2comment</option>
+                                <option value="--tamper=between">between</option>
+                                <option value="--tamper=charencode">charencode</option>
+                                <option value="--tamper=charunicodeencode">charunicodeencode</option>
+                                <option value="--tamper=equaltolike">equaltolike</option>
+                                <option value="--tamper=greatest">greatest</option>
+                                <option value="--tamper=multiplespaces">multiplespaces</option>
+                                <option value="--tamper=nonrecursivereplacement">nonrecursivereplacement</option>
+                                <option value="--tamper=percentage">percentage</option>
+                                <option value="--tamper=randomcase">randomcase</option>
+                                <option value="--tamper=securesphere">securesphere</option>
+                                <option value="--tamper=space2comment">space2comment</option>
+                                <option value="--tamper=space2plus">space2plus</option>
+                                <option value="--tamper=space2randomblank">space2randomblank</option>
+                                <option value="--tamper=unionalltounion">unionalltounion</option>
+                                <option value="--tamper=unmagicquotes">unmagicquotes</option>
+                                <option value="--tamper=versionedmorekeywords">versionedmorekeywords</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tamper-multiple">多个Tamper脚本</label>
+                            <input type="text" id="tamper-multiple" placeholder="between,charencode,charunicodeencode">
+                        </div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="waf">
+                                <label for="waf">WAF绕过</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="identify-waf">
+                                <label for="identify-waf">识别WAF</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mobile">
+                                <label for="mobile">模拟移动设备</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="smart">
+                                <label for="smart">启发式检测</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="text-only">
+                                <label for="text-only">仅文本模式</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="no-cast">
+                                <label for="no-cast">禁用类型转换</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="no-escape">
+                                <label for="no-escape">禁用字符转义</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion">
+                    <div class="accordion-header">
+                        <h3><i class="fas fa-code"></i> 其他选项</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="form-group">
+                            <label for="custom-options">自定义选项</label>
+                            <input type="text" id="custom-options" placeholder="--option=value">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="command-output">
+                <div class="command-container">
+                    <textarea id="output-command" readonly></textarea>
+                </div>
+                
+                <div class="button-container">
+                    <button id="generate-button" class="primary-btn">
+                        <i class="fas fa-magic"></i> 生成命令
+                    </button>
+                    <button id="reset-button" class="secondary-btn">
+                        <i class="fas fa-undo"></i> 重置选项
+                    </button>
+                    <button id="copy-button" class="secondary-btn">
+                        <i class="fas fa-copy"></i> 复制命令
+                    </button>
+                </div>
+                
+                <div class="history-section">
+                    <h4><i class="fas fa-history"></i> 历史命令</h4>
+                    <div class="history-header">
+                        <button id="clear-history" class="secondary-btn small">
+                            <i class="fas fa-trash"></i> 清空历史
+                        </button>
+                    </div>
+                    <ul id="command-history" class="history-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 模板模态框 -->
+    <div id="template-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-alt"></i> 命令模板</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="template-tabs">
+                    <div class="template-tab active" data-tab="preset">预设模板</div>
+                    <div class="template-tab" data-tab="custom">自定义模板</div>
+                </div>
+                
+                <div class="template-content-wrapper">
+                    <div id="preset-templates" class="template-content active">
+                        <div class="preset-template-list">
+                            <div class="template-item" data-template="basic">
+                                <div class="template-info">
+                                    <h4>基本扫描</h4>
+                                    <p>基本的SQL注入扫描配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('basic')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="waf-bypass">
+                                <div class="template-info">
+                                    <h4>WAF绕过</h4>
+                                    <p>针对WAF的绕过配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('waf-bypass')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="shell">
+                                <div class="template-info">
+                                    <h4>获取Shell</h4>
+                                    <p>尝试获取操作系统Shell的配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('shell')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="dump">
+                                <div class="template-info">
+                                    <h4>数据导出</h4>
+                                    <p>导出数据库数据的配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('dump')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="enum">
+                                <div class="template-info">
+                                    <h4>信息枚举</h4>
+                                    <p>枚举数据库信息的配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('enum')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="fast-scan">
+                                <div class="template-info">
+                                    <h4>高速扫描</h4>
+                                    <p>快速扫描多个可能的注入点</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('fast-scan')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="time-based">
+                                <div class="template-info">
+                                    <h4>时间盲注</h4>
+                                    <p>针对时间延迟盲注的专用配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('time-based')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="template-item" data-template="boolean-based">
+                                <div class="template-info">
+                                    <h4>布尔盲注</h4>
+                                    <p>针对布尔型盲注的专用配置</p>
+                                </div>
+                                <div class="template-actions">
+                                    <button class="use-template" onclick="loadTemplate('boolean-based')">
+                                        <i class="fas fa-check"></i> 使用
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="custom-templates" class="template-content">
+                        <div class="custom-template-form">
+                            <div class="form-group">
+                                <label for="template-name">模板名称</label>
+                                <input type="text" id="template-name" placeholder="输入模板名称">
+                            </div>
+                            <div class="form-group">
+                                <label for="template-description">模板描述</label>
+                                <input type="text" id="template-description" placeholder="输入模板描述">
+                            </div>
+                            <button id="save-custom-template" class="primary-btn">
+                                <i class="fas fa-save"></i> 保存模板
+                            </button>
+                        </div>
+                        <div class="custom-template-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
